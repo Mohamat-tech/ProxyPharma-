@@ -63,6 +63,7 @@ def require_admin(
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Accès réservé aux administrateurs",
+            detail="Acces reserve aux administrateurs",
         )
+
     return current_user
