@@ -1,17 +1,17 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://proxypharma-backend-jppj.onrender.com/api/v1";
 
-export default function RecherchePage() {
+const SUGGESTIONS = ["Paracétamol", "Fièvre", "Antipaludéen", "Amoxicilline", "Metformine", "Ibuprofène"];
+
+function RechercheContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("q") || "");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  const SUGGESTIONS = ["Paracétamol", "Fièvre", "Antipaludéen", "Amoxicilline", "Metformine", "Ibuprofène"];
 
   const handleSearch = async (q) => {
     if (!q) return;
@@ -21,7 +21,6 @@ export default function RecherchePage() {
       const data = await res.json();
       setResults(data.results || []);
     } catch {
-      // Fallback données statiques
       setResults([
         { id: 1, name: "Paracétamol 500mg", dci: "Paracétamol", category: "Antalgique", available_pharmacies: 12, min_price: 700, requires_prescription: false },
         { id: 2, name: "Amoxicilline 500mg", dci: "Amoxicilline", category: "Antibiotique", available_pharmacies: 8, min_price: 1200, requires_prescription: true },
@@ -57,8 +56,6 @@ export default function RecherchePage() {
           </div>
           <button onClick={() => handleSearch(search)} style={{ padding: "10px 16px", background: "#10B981", border: "none", borderRadius: 12, color: "white", fontFamily: "'Poppins', sans-serif", fontSize: "0.82rem", fontWeight: 600, cursor: "pointer" }}>Chercher</button>
         </div>
-
-        {/* Suggestions */}
         <div style={{ display: "flex", gap: 8, overflowX: "auto", scrollbarWidth: "none" }}>
           {SUGGESTIONS.map(s => (
             <button key={s} onClick={() => { setSearch(s); handleSearch(s); }} style={{ padding: "5px 12px", background: search === s ? "#0F4C81" : "#F1F5F9", border: "none", borderRadius: 20, fontSize: "0.72rem", fontWeight: 600, color: search === s ? "white" : "#94A3B8", cursor: "pointer", flexShrink: 0, fontFamily: "'Poppins', sans-serif" }}>{s}</button>
@@ -98,7 +95,7 @@ export default function RecherchePage() {
           <div style={{ textAlign: "center", padding: 40 }}>
             <div style={{ fontSize: "2rem", marginBottom: 12 }}>🔍</div>
             <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "#0F4C81", marginBottom: 4 }}>Aucun résultat</div>
-            <div style={{ fontSize: "0.78rem", color: "#94A3B8" }}>Essayez un autre terme de recherche</div>
+            <div style={{ fontSize: "0.78rem", color: "#94A3B8" }}>Essayez un autre terme</div>
           </div>
         ) : (
           <div style={{ textAlign: "center", padding: 40 }}>
@@ -110,5 +107,13 @@ export default function RecherchePage() {
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
+  );
+}
+
+export default function RecherchePage() {
+  return (
+    <Suspense fallback={<div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", fontFamily: "'Poppins', sans-serif", color: "#94A3B8" }}>Chargement…</div>}>
+      <RechercheContent />
+    </Suspense>
   );
 }
